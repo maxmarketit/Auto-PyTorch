@@ -1,3 +1,5 @@
+import numpy as np
+
 def qloss_metric(y_true, y_pred, qs):
         e = y_true - y_pred
         return np.maximum(qs * e, (qs-1)*e).mean()
