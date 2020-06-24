@@ -77,12 +77,23 @@ class QinputLoss(_Loss):
             raise ValueError('ws must be tuple')
 
         #self.ws = ws
-        self.ws = torch.tensor(ws).float().reshape(1,-1)
+        #self.ws = torch.tensor(ws).float().reshape(1,-1)
+        self.ws = torch.tensor(ws).float()
 
-
-    def to(self, device):
-        self.ws.to(device)
-        super(QinputLoss, self).to(device)
+        
+    #def to(self, *args, **kwargs):
+    #    self.ws = self.ws.to(*args, **kwargs)
+    #    self = super(QinputLoss, self).to(*args, **kwargs)
+        
+    #def cuda(self, device = None):
+    #    self.ws = self.ws.cuda(device = device)
+    #    self = super(QinputLoss, self).cuda(device = device)
+        
+    #def cpu(self):
+    #    self.ws = self.ws.cpu()
+    
+    #.to, .cuda, .cpu와 같은 method를 구현하려고 했으나,
+    #단순히 self.ws를 cpu/gpu로 옮기는 것이 더 간단해 보임.
 
 
     def forward(self, input, target):
@@ -113,9 +124,18 @@ class QinputLoss(_Loss):
             e= target[:,1:] - input[:,1:] # target error
             
             # target[:,0:1] is q! 
+            #print(q.device)
+            #print(e.device)
+            #print(w_input.device)
             ret = w_input*torch.max(q * e, (q - 1) * e)
             #ret = torch.abs(input - target) # MAE 
         if reduction != 'none':
+            #print(ret.device)
+            #print(ret.shape)
+            #print(w_q.device)
+            #print(w_q.shape)
+            #print(e_q.device)
+            #print(e_q.shape)
             ret = torch.mean(ret) +torch.mean(w_q* e_q) if reduction == 'mean' else torch.sum(ret) + torch.sum(w_q*e_q)
         else:
             raise ValueError('not(target.requires_grad): not yet implemented')
