@@ -45,10 +45,10 @@ class QuantileLoss(_Loss):
                           "Please ensure they have the same size.".format(target.size(), input.size()),
                           stacklevel=2)
             
-        #qs = torch.tensor(self.qs, dtype = input.dtype, requires_grad=False).to(input.device)
+        qs = torch.tensor(self.qs, dtype = input.dtype, requires_grad=False).to(input.device)
         if True:
             e = target - input           
-            ret = torch.max(self.qs * e, (self.qs - 1) * e)
+            ret = torch.max(qs * e, (qs - 1) * e)
         if reduction != 'none':
             ret = torch.mean(ret) if reduction == 'mean' else torch.sum(ret)
         else:
