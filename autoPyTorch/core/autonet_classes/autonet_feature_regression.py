@@ -26,10 +26,17 @@ class AutoNetRegression(AutoNetFeatureData):
 
         loss_selector = pipeline[LossModuleSelector.get_name()]
         loss_selector.add_loss_module('l1_loss', nn.L1Loss)
+        #QuantileLoss나 QinputLoss는 quantile 또는 weights를 입력으로 받아야 하므로
+        #여기서 add_loss_module하기 힘들다.
 
         metric_selector = pipeline[MetricSelector.get_name()]
         metric_selector.add_metric('mean_abs_error', mae, loss_transform=False, requires_target_class_labels=False)
         metric_selector.add_metric('rmse', rmse, loss_transform=False, requires_target_class_labels=False)
+        #metric_ql과 metric_qil은 모두 quantile을 입력으로 받아야 하므로 여기서 add_metric 하기 힘들다.
+        #metric_selector.add_metric('metric_ql', metric_ql, loss_transform=False, requires_target_class_labels=False)
+        #metric_selector.add_metric('metric_qil', metric_qil, loss_transform=False, requires_target_class_labels=False)
+
+
 
         train_node = pipeline[TrainNode.get_name()]
         train_node.default_minimize_value = True
