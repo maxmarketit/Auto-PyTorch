@@ -54,6 +54,7 @@ class QuantileLoss(_Loss):
             ret = torch.mean(ret) if reduction == 'mean' else torch.sum(ret)
         else:
             raise ValueError('not(target.requires_grad): not yet implemented')
+        return ret
 
 class QinputLoss(_Loss):
     # import numpy as np
