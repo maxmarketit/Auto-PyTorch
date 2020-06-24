@@ -19,14 +19,23 @@ class QuantileLoss(_Loss):
 
     def __init__(self, size_average=None, reduce=None, reduction='mean', qs=(0.5,)):
         super(QuantileLoss, self).__init__(size_average, reduce, reduction)
-        if not(isinstance(qs, tuple)) and not(isinstance(qs, np.ndarray)):
-            raise ValueError('qs must be either list or np.array')
-        if isinstance(qs, tuple):
-            qs = np.array(qs)
-        if isinstance(qs, np.ndarray) and not (len(qs.shape) == 1):
-            raise ValueError('qs must be shape of 1 dim')
+        #if not(isinstance(qs, tuple)) and not(isinstance(qs, np.ndarray)):
+        #    raise ValueError('qs must be either list or np.array')
+        #if isinstance(qs, tuple):
+        #    qs = np.array(qs)
+        #if isinstance(qs, np.ndarray) and not (len(qs.shape) == 1):
+        #    raise ValueError('qs must be shape of 1 dim')
 
-        self.qs = qs
+        #self.qs = qs
+
+        if not(isinstance(qs, tuple)):
+            raise ValueError('qs must be tuple')
+
+        self.qs = torch.tensor(qs).float().reshape(1,-1)
+
+    def to(self, device):
+        self.qs.to(device)
+        super(QuantileLoss, self).to(device)
 
     def forward(self, input, target):
         reduction = self.reduction
@@ -36,10 +45,10 @@ class QuantileLoss(_Loss):
                           "Please ensure they have the same size.".format(target.size(), input.size()),
                           stacklevel=2)
             
-        qs = torch.tensor(self.qs, dtype = input.dtype, requires_grad=False).to(input.device)
+        #qs = torch.tensor(self.qs, dtype = input.dtype, requires_grad=False).to(input.device)
         if True:
             e = target - input           
-            ret = torch.max(qs * e, (qs - 1) * e)
+            ret = torch.max(self.qs * e, (self.qs - 1) * e)
         if reduction != 'none':
             ret = torch.mean(ret) if reduction == 'mean' else torch.sum(ret)
         else:
