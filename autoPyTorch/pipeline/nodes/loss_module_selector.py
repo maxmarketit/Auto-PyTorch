@@ -4,6 +4,7 @@ __license__ = "BSD"
 
 import inspect
 import torch
+import numpy as np # numpy를 여기서 import하면 부하가 커지나???
 
 import ConfigSpace
 import ConfigSpace.hyperparameters as CSH
