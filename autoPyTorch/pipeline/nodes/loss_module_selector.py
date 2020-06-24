@@ -64,14 +64,24 @@ class QinputLoss(_Loss):
             # size_average와 reduce는 앞으로 deprecated될 예정, reduction을 사용하라
             # reduction = 'mean' or 'sum' or 'none'
         super(QinputLoss, self).__init__(size_average, reduce, reduction)
-        if not(isinstance(ws, tuple)) and not(isinstance(ws, np.ndarray)):
-            raise ValueError('ws must be either list or np.array')
-        if isinstance(ws, tuple):
-            ws = np.array(ws)
-        if isinstance(ws, np.ndarray) and not (len(ws.shape) == 1):
-            raise ValueError('qs must be shape of 1 dim')
+        #if not(isinstance(ws, tuple)) and not(isinstance(ws, np.ndarray)):
+        #    raise ValueError('ws must be either list or np.array')
+        #if isinstance(ws, tuple):
+        #    ws = np.array(ws)
+        #if isinstance(ws, np.ndarray) and not (len(ws.shape) == 1):
+        #    raise ValueError('qs must be shape of 1 dim')
 
-        self.ws = ws
+        if not(isinstance(ws, tuple)):
+            raise ValueError('ws must be tuple')
+
+        #self.ws = ws
+        self.ws = torch.tensor(ws).float().reshape(1,-1)
+
+
+    def to(self, device):
+        self.ws.to(device)
+        super(QinputLoss, self).to(device)
+
 
     def forward(self, input, target):
         # 위의 l1_loss에서 따옴
@@ -90,10 +100,10 @@ class QinputLoss(_Loss):
                           "Please ensure they have the same size.".format(target.size(), input.size()),
                           stacklevel=2)
             
-        ws = torch.tensor(self.ws, dtype = input.dtype, requires_grad=False).to(input.device)
+        #ws = torch.tensor(self.ws, dtype = input.dtype, requires_grad=False).to(input.device)
         # ws : weights on quantile loss and weights on output 
-        w_q = ws[0]
-        w_input = ws[1:].reshape(1,-1)
+        w_q = self.ws[0]
+        w_input = self.ws[1:].reshape(1,-1)
         q = target[:,0:1]
         #if target.requires_grad: # 아마 target이 고정되어 있는 경우 else:에서 빠른 처리가 가능한 듯.
         if True:
