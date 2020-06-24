@@ -18,7 +18,7 @@ from autoPyTorch.utils.config.config_option import ConfigOption
 class QuantileLoss(_Loss):
     __constants__ = ['reduction']
 
-    def __init__(self, size_average=None, reduce=None, reduction='mean', qs=(0.5,)):
+    def __init__(self, size_average=None, reduce=None, reduction='mean', qs=(0.5,), cuda=True):
         super(QuantileLoss, self).__init__(size_average, reduce, reduction)
         #if not(isinstance(qs, tuple)) and not(isinstance(qs, np.ndarray)):
         #    raise ValueError('qs must be either list or np.array')
@@ -32,11 +32,14 @@ class QuantileLoss(_Loss):
         if not(isinstance(qs, tuple)):
             raise ValueError('qs must be tuple')
 
-        self.qs = torch.tensor(qs).float().reshape(1,-1)
+        if cuda:
+            self.qs = torch.tensor(qs).float().reshape(1,-1).cuda()
+        else:
+            self.qs = torch.tensor(qs).float().reshape(1,-1)
 
-    def to(self, device):
-        self.qs.to(device)
-        super(QuantileLoss, self).to(device)
+    #def to(self, device):
+    #    self.qs.to(device)
+    #    super(QuantileLoss, self).to(device)
 
     def forward(self, input, target):
         reduction = self.reduction
@@ -46,10 +49,10 @@ class QuantileLoss(_Loss):
                           "Please ensure they have the same size.".format(target.size(), input.size()),
                           stacklevel=2)
             
-        qs = torch.tensor(self.qs, dtype = input.dtype, requires_grad=False).to(input.device)
+        #qs = torch.tensor(self.qs, dtype = input.dtype, requires_grad=False).to(input.device)
         if True:
             e = target - input           
-            ret = torch.max(qs * e, (qs - 1) * e)
+            ret = torch.max(self.qs * e, (self.qs - 1) * e)
         if reduction != 'none':
             ret = torch.mean(ret) if reduction == 'mean' else torch.sum(ret)
         else:
@@ -62,7 +65,7 @@ class QinputLoss(_Loss):
 
     __constants__ = ['reduction']
 
-    def __init__(self, size_average=None, reduce=None, reduction='mean', ws=(0,1)):
+    def __init__(self, size_average=None, reduce=None, reduction='mean', ws=(0,1), cuda=True):
             # size_average와 reduce는 앞으로 deprecated될 예정, reduction을 사용하라
             # reduction = 'mean' or 'sum' or 'none'
         super(QinputLoss, self).__init__(size_average, reduce, reduction)
@@ -78,7 +81,10 @@ class QinputLoss(_Loss):
 
         #self.ws = ws
         #self.ws = torch.tensor(ws).float().reshape(1,-1)
-        self.ws = torch.tensor(ws).float()
+        if cuda:
+            self.ws = torch.tensor(ws).float().cuda()
+        else:
+            self.ws = torch.tensor(ws).float()    
 
         
     #def to(self, *args, **kwargs):
